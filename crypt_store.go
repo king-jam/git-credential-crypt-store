@@ -77,7 +77,7 @@ func (cs *CryptStore) StoreCredential(c *Credential) error {
 		return err
 	}
 	base := getCredBase()
-	credKey, err := storeKeyFromCredentials(*c)
+	credKey := ""
 	key := base + credKey
 	if err != nil {
 		return err
