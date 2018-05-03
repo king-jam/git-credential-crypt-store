@@ -12,7 +12,7 @@ import (
 var storeLocation string
 
 func init() {
-	flag.StringVar(&storeLocation, "file", "$HOME/.git-credential-crypt-store", "Location to store the credentials.")
+	flag.StringVar(&storeLocation, "file", "~/.git-credential-crypt-store", "Location to store the credentials.")
 }
 
 func main() {
@@ -51,7 +51,9 @@ func main() {
 		lookupCredentials(cs, creds)
 	case "store":
 		log.Print("STORE")
-		storeCredentials(cs, creds)
+		if err := storeCredentials(cs, creds); err != nil {
+			os.Exit(1)
+		}
 	case "erase":
 		log.Print("ERASE")
 		removeCredentials(cs, creds)

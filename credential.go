@@ -58,6 +58,38 @@ func (c *Credential) IsValidToStore() bool {
 	return c.Protocol == "" || !(c.Host == "" || c.Path == "") || c.Username == "" || c.Password == ""
 }
 
+func CredentialsMatch(want *Credential, have *Credential) bool {
+	if want.Protocol != "" {
+		if have.Protocol != "" {
+			if want.Protocol != have.Protocol {
+				return false
+			}
+		}
+	}
+	if want.Host != "" {
+		if have.Host != "" {
+			if want.Host != have.Host {
+				return false
+			}
+		}
+	}
+	if want.Path != "" {
+		if have.Path != "" {
+			if want.Path != have.Path {
+				return false
+			}
+		}
+	}
+	if want.Username != "" {
+		if have.Username != "" {
+			if want.Username != have.Username {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func ParseCredentialStdin() (*Credential, error) {
 	c := new(Credential)
 	reader := bufio.NewReader(os.Stdin)

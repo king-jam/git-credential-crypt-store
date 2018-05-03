@@ -17,6 +17,10 @@ const (
 	credKey        = "creds"
 )
 
+var (
+	ErrKeyNotFound = store.ErrKeyNotFound
+)
+
 type StorageContainer struct {
 	CredentialURLs []string
 	LastIndex      uint64
@@ -24,7 +28,7 @@ type StorageContainer struct {
 
 type CryptStoreInterface interface {
 	GetStorageContainer() (*StorageContainer, error)
-	AtomicPutStorageContainer(s *StorageContainer, prevIndex uint64) error
+	AtomicPutStorageContainer(s *StorageContainer) error
 }
 
 type CryptStore struct {
@@ -64,9 +68,14 @@ func (cs *CryptStore) GetStorageContainer() (*StorageContainer, error) {
 }
 
 // atomicStoreCredentialList ...
-func (cs *CryptStore) AtomicPutStorageContainer(s *StorageContainer, prevIndex uint64) error {
-	previous := &store.KVPair{
-		LastIndex: prevIndex,
+func (cs *CryptStore) AtomicPutStorageContainer(s *StorageContainer) error {
+	var previous *store.KVPair
+	if s.LastIndex == 0 {
+		previous = nil
+	} else {
+		previous = &store.KVPair{
+			LastIndex: s.LastIndex,
+		}
 	}
 	data, err := json.Marshal(s.CredentialURLs)
 	if err != nil {
