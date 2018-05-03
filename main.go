@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/king-jam/git-credential-crypt-store/backend"
 )
 
 var storeLocation string
@@ -30,9 +32,14 @@ func main() {
 	if len(os.Args[1:]) == 0 {
 		flag.Usage()
 	}
-	// if we got here then the input arguments are at least correct
 	// open up the credential storage
-	creds, err := parseCredentialStdin()
+	cs, err := backend.OpenCryptStore(storeLocation)
+	if err != nil {
+		os.Exit(1)
+	}
+	// if we got here then the input arguments are at least correct
+	// parse in the credentials
+	creds, err := ParseCredentialStdin()
 	log.Printf("%+v", creds)
 	if err != nil {
 		os.Exit(1)
@@ -41,28 +48,14 @@ func main() {
 	switch op := os.Args[len(os.Args)-1]; op {
 	case "get":
 		log.Print("GET")
-		lookupCredentials(storeLocation, creds)
+		lookupCredentials(cs, creds)
 	case "store":
 		log.Print("STORE")
-		storeCredentials(storeLocation, creds)
+		storeCredentials(cs, creds)
 	case "erase":
 		log.Print("ERASE")
-		removeCredentials(storeLocation, creds)
+		removeCredentials(cs, creds)
 	default:
 		// ignore unknown operation
 	}
-}
-
-func lookupCredentials(storeLocation string, credentials *Credential) {
-	fmt.Fprintln(os.Stdout, "username=king-jam")
-	fmt.Fprintln(os.Stdout, "password=password")
-	return
-}
-
-func storeCredentials(storeLocation string, credentials *Credential) {
-	return
-}
-
-func removeCredentials(storeLocation string, credentials *Credential) {
-	return
 }

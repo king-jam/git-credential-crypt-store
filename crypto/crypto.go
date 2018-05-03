@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -28,8 +29,10 @@ type Cipher struct {
 }
 
 // NewCipher creates an AES-256 block cipher to encrypt/decrypt data
-func NewCipher(key []byte) (*Cipher, error) {
-	aesgcm, err := buildCipher(key)
+func NewCipher(password string) (*Cipher, error) {
+	hasher := sha256.New()
+	hasher.Write([]byte(password))
+	aesgcm, err := buildCipher(hasher.Sum(nil))
 	if err != nil {
 		return nil, ErrCryptoManager(err.Error())
 	}
