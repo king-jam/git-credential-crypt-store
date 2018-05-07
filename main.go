@@ -6,12 +6,17 @@ import (
 	"os"
 
 	"github.com/king-jam/git-credential-crypt-store/backend"
+	homedir "github.com/mitchellh/go-homedir"
 )
+
+const storeFileName = ".git-credential-crypt-store"
+
+const storeLocationDefault = "~/" + storeFileName
 
 var storeLocation string
 
 func init() {
-	flag.StringVar(&storeLocation, "file", "/tmp/.git-credential-crypt-store", "Location to store the credentials.")
+	flag.StringVar(&storeLocation, "file", storeLocationDefault, "Location to store the credentials.")
 }
 
 func main() {
@@ -27,6 +32,14 @@ func main() {
 	}
 	// parse the flags, we will use the default if nothing is configured
 	flag.Parse()
+
+	if storeLocation == storeLocationDefault {
+		home, err := homedir.Dir()
+		if err != nil {
+			os.Exit(1)
+		}
+		storeLocation = home + "/.git-credential-crypt-store"
+	}
 	// if we don't get anything after the program, just give an error back
 	if len(os.Args[1:]) == 0 {
 		flag.Usage()
@@ -53,7 +66,9 @@ func main() {
 			os.Exit(1)
 		}
 	case "erase":
-		removeCredentials(cs, creds)
+		if err := removeCredentials(cs, creds); err != nil {
+			os.Exit(1)
+		}
 	default:
 		// ignore unknown operation
 	}
