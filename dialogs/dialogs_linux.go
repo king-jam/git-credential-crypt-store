@@ -2,18 +2,17 @@ package dialogs
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
 )
 
 // PasswordBox displays a dialog box, returning the entered value and a error
-func PasswordBox(message string) (string, error) {
+func PasswordBox() (string, error) {
 	out, err := exec.Command(
 		"zenity", "--entry",
-		"--title", "Encryption Key Password",
-		"--text", message,
-		"--entry-text", "--hide-text").Output()
+		"--title", "Decryption Password",
+		"--text", "Please enter your decryption password",
+		"--hide-text").Output()
 	// NOTE: exit code 1 = cancel was pressed
 	if err != nil {
 		return "", fmt.Errorf("Failure to get user password")
@@ -26,23 +25,21 @@ func PasswordBox(message string) (string, error) {
 func PasswordCreationBox() (string, error) {
 	for {
 		out, err := exec.Command(
-			"zenity", "--forms", "--add-password", "'Password'",
-			"--add-password", "'Confirm Password'",
-			"--title", "'Encryption Key Password Creation'",
-			"--text", "'Please create a localized passphrase to encrypt/decrypt local password'").Output()
+			"zenity", "--forms", "--add-password", "Password",
+			"--add-password", "Confirm Password",
+			"--title", "Encryption Password Creation",
+			"--text", "Please create a localized passphrase to encrypt/decrypt local password").Output()
 		// NOTE: exit code 1 = cancel was pressed
 		if err != nil {
 			return "", fmt.Errorf("Failure to get user password")
 		}
-		log.Printf("%s\n", string(out))
 		parts := strings.SplitN(string(out), "|", 2)
-		log.Printf("%+v", parts)
 		if strings.TrimSpace(parts[0]) != strings.TrimSpace(parts[1]) {
 			out, err = exec.Command(
 				"zenity",
 				"--error",
 				"--text",
-				"\"Passwords Do Not Match\"",
+				"Passwords Do Not Match",
 			).Output()
 			if err != nil {
 				return "", fmt.Errorf("Failure to get user password")

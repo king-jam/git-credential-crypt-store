@@ -17,10 +17,6 @@ const (
 	credKey        = "creds"
 )
 
-var (
-	ErrKeyNotFound = store.ErrKeyNotFound
-)
-
 type StorageContainer struct {
 	CredentialURLs []string
 	LastIndex      uint64
@@ -28,7 +24,7 @@ type StorageContainer struct {
 
 type CryptStoreInterface interface {
 	GetStorageContainer() (*StorageContainer, error)
-	AtomicPutStorageContainer(s *StorageContainer) error
+	PersistStorageContainer(s *StorageContainer) error
 }
 
 type CryptStore struct {
@@ -51,24 +47,30 @@ func OpenCryptStore(storeLocation string) (*CryptStore, error) {
 	}, nil
 }
 
-// getCredentialList ...
+// GetStorageContainer ...
 func (cs *CryptStore) GetStorageContainer() (*StorageContainer, error) {
+	s := new(StorageContainer)
 	pair, err := cs.db.Get(credKey)
 	if err != nil {
+		if err == store.ErrKeyNotFound {
+			// initialize an empty object
+			s.CredentialURLs = make([]string, 0)
+			s.LastIndex = 0
+			return s, nil
+		}
 		return nil, err
 	}
 	var ret []string
-	if err := json.Unmarshal(pair.Value, ret); err != nil {
+	if err := json.Unmarshal(pair.Value, &ret); err != nil {
 		return nil, err
 	}
-	return &StorageContainer{
-		CredentialURLs: ret,
-		LastIndex:      pair.LastIndex,
-	}, nil
+	s.CredentialURLs = ret
+	s.LastIndex = pair.LastIndex
+	return s, nil
 }
 
-// atomicStoreCredentialList ...
-func (cs *CryptStore) AtomicPutStorageContainer(s *StorageContainer) error {
+// PersistStorageContainer ...
+func (cs *CryptStore) PersistStorageContainer(s *StorageContainer) error {
 	var previous *store.KVPair
 	if s.LastIndex == 0 {
 		previous = nil

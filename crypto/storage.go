@@ -19,7 +19,7 @@ const (
 
 var (
 	// base64EncodingType stores the type of encoding used for encode/decode operations
-	base64EncodingType = base64.RawURLEncoding
+	base64EncodingType = base64.RawStdEncoding
 	// ErrStorageLayoutEncodingInput returns an error when encoding has failed for
 	// invalid input errors
 	ErrStorageLayoutEncodingInput = errors.New("encoding failure: invalid inputs")

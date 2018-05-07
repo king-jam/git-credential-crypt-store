@@ -47,7 +47,7 @@ func (c *Credential) ToURL() (*url.URL, error) {
 		u.User = url.UserPassword(c.Username, c.Password)
 	}
 	// if we just have a username
-	if c.Username != "" {
+	if c.Username != "" && c.Password == "" {
 		u.User = url.User(c.Username)
 	}
 	return u, nil
@@ -55,7 +55,12 @@ func (c *Credential) ToURL() (*url.URL, error) {
 
 func (c *Credential) IsValidToStore() bool {
 	// ensure we actually have stuff to store
-	return c.Protocol == "" || !(c.Host == "" || c.Path == "") || c.Username == "" || c.Password == ""
+	return !(c.Protocol == "" || !(c.Host == "" || c.Path == "") || c.Username == "" || c.Password == "")
+}
+
+func (c *Credential) PrintToStdOut() {
+	fmt.Fprintf(os.Stdout, "username=%s\n", c.Username)
+	fmt.Fprintf(os.Stdout, "password=%s\n", c.Password)
 }
 
 func CredentialsMatch(want *Credential, have *Credential) bool {

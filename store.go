@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/king-jam/git-credential-crypt-store/backend"
 	"github.com/king-jam/git-credential-crypt-store/crypto"
@@ -9,7 +9,27 @@ import (
 )
 
 func storeCredentials(db backend.CryptStoreInterface, credentials *Credential) error {
-	var s *backend.StorageContainer
+	// check that they are valid to store
+	if !credentials.IsValidToStore() {
+		return fmt.Errorf("Invalid Credential Storage Format")
+	}
+	s, err := db.GetStorageContainer()
+	if err != nil {
+		return err
+	}
+	// declare index to -1 for a later check
+	// iterate to see if we already have these credentials stored
+	for _, elem := range s.CredentialURLs {
+		c := new(Credential)
+		err := parseCredentialURL(elem, c)
+		if err != nil {
+			return err
+		}
+		if CredentialsMatch(credentials, c) {
+			return nil
+		}
+	}
+	// if we don't have an entry, create it
 	password, err := dialogs.PasswordCreationBox()
 	if err != nil {
 		return err
@@ -17,39 +37,6 @@ func storeCredentials(db backend.CryptStoreInterface, credentials *Credential) e
 	cipher, err := crypto.NewCipher(password)
 	if err != nil {
 		return err
-	}
-	s, err = db.GetStorageContainer()
-	if err != nil {
-		if err == backend.ErrKeyNotFound {
-			// initialize our Credentials
-			s = &backend.StorageContainer{
-				CredentialURLs: make([]string, 0),
-				LastIndex:      0,
-			}
-		} else {
-			return err
-		}
-	}
-	// declare index to -1 for a later check
-	matchIndex := -1
-	// iterate to see if we already have these credentials stored
-	for idx, elem := range s.CredentialURLs {
-		c := new(Credential)
-		err := parseCredentialURL(elem, c)
-		if err != nil {
-			return err
-		}
-		if CredentialsMatch(credentials, c) {
-			matchIndex = idx
-			break
-		}
-	}
-	// if we already have an entry for this, overwrite it
-	if matchIndex != -1 {
-		// delete the current index
-		copy(s.CredentialURLs[matchIndex:], s.CredentialURLs[matchIndex+1:])
-		s.CredentialURLs[len(s.CredentialURLs)-1] = ""
-		s.CredentialURLs = s.CredentialURLs[:len(s.CredentialURLs)-1]
 	}
 	ciphertext, err := cipher.Encrypt([]byte(credentials.Password))
 	if err != nil {
@@ -61,13 +48,9 @@ func storeCredentials(db backend.CryptStoreInterface, credentials *Credential) e
 		return err
 	}
 	s.CredentialURLs = append(s.CredentialURLs, credAsURL.String())
-	err = db.AtomicPutStorageContainer(s)
+	err = db.PersistStorageContainer(s)
 	if err != nil {
 		return err
-	}
-	log.Printf("%+v", s)
-	for _, t := range s.CredentialURLs {
-		log.Printf("%s\n", t)
 	}
 	return nil
 }

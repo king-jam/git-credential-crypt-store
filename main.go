@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/king-jam/git-credential-crypt-store/backend"
@@ -12,7 +11,7 @@ import (
 var storeLocation string
 
 func init() {
-	flag.StringVar(&storeLocation, "file", "~/.git-credential-crypt-store", "Location to store the credentials.")
+	flag.StringVar(&storeLocation, "file", "/tmp/.git-credential-crypt-store", "Location to store the credentials.")
 }
 
 func main() {
@@ -40,22 +39,20 @@ func main() {
 	// if we got here then the input arguments are at least correct
 	// parse in the credentials
 	creds, err := ParseCredentialStdin()
-	log.Printf("%+v", creds)
 	if err != nil {
 		os.Exit(1)
 	}
 	// just grab the last argument at this point, if it isn't a command, just ignore it
 	switch op := os.Args[len(os.Args)-1]; op {
 	case "get":
-		log.Print("GET")
-		lookupCredentials(cs, creds)
+		if err := lookupCredentials(cs, creds); err != nil {
+			os.Exit(1)
+		}
 	case "store":
-		log.Print("STORE")
 		if err := storeCredentials(cs, creds); err != nil {
 			os.Exit(1)
 		}
 	case "erase":
-		log.Print("ERASE")
 		removeCredentials(cs, creds)
 	default:
 		// ignore unknown operation
