@@ -20,7 +20,82 @@ type Credential struct {
 	Quit     int
 }
 
-func parseCredentialStdin() (*Credential, error) {
+func (c *Credential) ToURL() (*url.URL, error) {
+	// if we already have the URL defined, just return it
+	if c.URL != "" {
+		url, err := url.Parse(c.URL)
+		if err != nil {
+			return nil, err
+		}
+		return url, nil
+	}
+	u := new(url.URL)
+	// ensure host is defined
+	if c.Host != "" {
+		u.Host = c.Host
+	}
+	// ensure path is defined
+	if c.Path != "" {
+		u.Path = c.Path
+	}
+	// ensure protocol is defined
+	if c.Protocol != "" {
+		u.Scheme = c.Protocol
+	}
+	// if we have a username and a password
+	if c.Username != "" && c.Password != "" {
+		u.User = url.UserPassword(c.Username, c.Password)
+	}
+	// if we just have a username
+	if c.Username != "" && c.Password == "" {
+		u.User = url.User(c.Username)
+	}
+	return u, nil
+}
+
+func (c *Credential) IsValidToStore() bool {
+	// ensure we actually have stuff to store
+	return !(c.Protocol == "" || !(c.Host == "" || c.Path == "") || c.Username == "" || c.Password == "")
+}
+
+func (c *Credential) PrintToStdOut() {
+	fmt.Fprintf(os.Stdout, "username=%s\n", c.Username)
+	fmt.Fprintf(os.Stdout, "password=%s\n", c.Password)
+}
+
+func CredentialsMatch(want *Credential, have *Credential) bool {
+	if want.Protocol != "" {
+		if have.Protocol != "" {
+			if want.Protocol != have.Protocol {
+				return false
+			}
+		}
+	}
+	if want.Host != "" {
+		if have.Host != "" {
+			if want.Host != have.Host {
+				return false
+			}
+		}
+	}
+	if want.Path != "" {
+		if have.Path != "" {
+			if want.Path != have.Path {
+				return false
+			}
+		}
+	}
+	if want.Username != "" {
+		if have.Username != "" {
+			if want.Username != have.Username {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func ParseCredentialStdin() (*Credential, error) {
 	c := new(Credential)
 	reader := bufio.NewReader(os.Stdin)
 	for {

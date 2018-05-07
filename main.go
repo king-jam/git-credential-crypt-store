@@ -3,14 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/king-jam/git-credential-crypt-store/backend"
+	homedir "github.com/mitchellh/go-homedir"
 )
+
+const storeFileName = ".git-credential-crypt-store"
+
+const storeLocationDefault = "~/" + storeFileName
 
 var storeLocation string
 
 func init() {
-	flag.StringVar(&storeLocation, "file", "$HOME/.git-credential-crypt-store", "Location to store the credentials.")
+	flag.StringVar(&storeLocation, "file", storeLocationDefault, "Location to store the credentials.")
 }
 
 func main() {
@@ -26,43 +32,44 @@ func main() {
 	}
 	// parse the flags, we will use the default if nothing is configured
 	flag.Parse()
+
+	if storeLocation == storeLocationDefault {
+		home, err := homedir.Dir()
+		if err != nil {
+			os.Exit(1)
+		}
+		storeLocation = home + "/.git-credential-crypt-store"
+	}
 	// if we don't get anything after the program, just give an error back
 	if len(os.Args[1:]) == 0 {
 		flag.Usage()
 	}
-	// if we got here then the input arguments are at least correct
 	// open up the credential storage
-	creds, err := parseCredentialStdin()
-	log.Printf("%+v", creds)
+	cs, err := backend.OpenCryptStore(storeLocation)
+	if err != nil {
+		os.Exit(1)
+	}
+	// if we got here then the input arguments are at least correct
+	// parse in the credentials
+	creds, err := ParseCredentialStdin()
 	if err != nil {
 		os.Exit(1)
 	}
 	// just grab the last argument at this point, if it isn't a command, just ignore it
 	switch op := os.Args[len(os.Args)-1]; op {
 	case "get":
-		log.Print("GET")
-		lookupCredentials(storeLocation, creds)
+		if err := lookupCredentials(cs, creds); err != nil {
+			os.Exit(1)
+		}
 	case "store":
-		log.Print("STORE")
-		storeCredentials(storeLocation, creds)
+		if err := storeCredentials(cs, creds); err != nil {
+			os.Exit(1)
+		}
 	case "erase":
-		log.Print("ERASE")
-		removeCredentials(storeLocation, creds)
+		if err := removeCredentials(cs, creds); err != nil {
+			os.Exit(1)
+		}
 	default:
 		// ignore unknown operation
 	}
-}
-
-func lookupCredentials(storeLocation string, credentials *Credential) {
-	fmt.Fprintln(os.Stdout, "username=king-jam")
-	fmt.Fprintln(os.Stdout, "password=password")
-	return
-}
-
-func storeCredentials(storeLocation string, credentials *Credential) {
-	return
-}
-
-func removeCredentials(storeLocation string, credentials *Credential) {
-	return
 }
