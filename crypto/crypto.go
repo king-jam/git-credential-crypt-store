@@ -10,12 +10,6 @@ import (
 	"io"
 )
 
-const (
-	// keySize stores the key size to generate. This size is dictated by
-	// https://golang.org/pkg/crypto/aes/#NewCipher
-	keySize = 32
-)
-
 var (
 	// ErrKeyFormat returns an error when the provided key is not valid
 	ErrKeyFormat = errors.New("key format is invalid")
@@ -31,7 +25,10 @@ type Cipher struct {
 // NewCipher creates an AES-256 block cipher to encrypt/decrypt data
 func NewCipher(password string) (*Cipher, error) {
 	hasher := sha256.New()
-	hasher.Write([]byte(password))
+	_, err := hasher.Write([]byte(password))
+	if err != nil {
+		return nil, ErrCryptoManager(err.Error())
+	}
 	aesgcm, err := buildCipher(hasher.Sum(nil))
 	if err != nil {
 		return nil, ErrCryptoManager(err.Error())

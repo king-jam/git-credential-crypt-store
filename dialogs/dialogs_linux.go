@@ -35,7 +35,7 @@ func PasswordCreationBox() (string, error) {
 		}
 		parts := strings.SplitN(string(out), "|", 2)
 		if strings.TrimSpace(parts[0]) != strings.TrimSpace(parts[1]) {
-			out, err = exec.Command(
+			_, err = exec.Command(
 				"zenity",
 				"--error",
 				"--text",

@@ -53,15 +53,24 @@ func (sl storageLayout) Encode() ([]byte, error) {
 	// base64 encode it so we don't overlap our delimiters
 	nonceEncoder := base64.NewEncoder(base64EncodingType, buffer)
 	// append on the nonce value - <nonce>
-	nonceEncoder.Write(sl.nonce) // write through the encoder to the buffer
-	nonceEncoder.Close()         // close it so everything flushes
+	_, err := nonceEncoder.Write(sl.nonce) // write through the encoder to the buffer
+	if err != nil {
+		return []byte{}, ErrStorageLayoutEncodingInput
+	}
+	nonceEncoder.Close() // close it so everything flushes
 	// append on the third delimiter - <nonce><delimiter>
-	buffer.Write(delimiter)
+	_, err = buffer.Write(delimiter)
+	if err != nil {
+		return []byte{}, ErrStorageLayoutEncodingInput
+	}
 	// base64 encode it so we don't overlap our delimiters
 	valueEncoder := base64.NewEncoder(base64EncodingType, buffer)
 	// append on the ciphertext value - <nonce><delimiter><value>
-	valueEncoder.Write(sl.value) // write through the encoder to the buffer
-	valueEncoder.Close()         // close it so everything flushes
+	_, err = valueEncoder.Write(sl.value) // write through the encoder to the buffer
+	if err != nil {
+		return []byte{}, ErrStorageLayoutEncodingInput
+	}
+	valueEncoder.Close() // close it so everything flushes
 	return buffer.Bytes(), nil
 }
 

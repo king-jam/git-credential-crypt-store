@@ -28,7 +28,7 @@ func main() {
 		title := "git credential helper to store passwords encrypted to enable usage of access tokens with 2FA."
 		fmt.Fprint(os.Stderr, title+"\n\n")
 		flag.PrintDefaults()
-		return
+		os.Exit(1)
 	}
 	// parse the flags, we will use the default if nothing is configured
 	flag.Parse()
