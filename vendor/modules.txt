@@ -1,0 +1,10 @@
+# github.com/boltdb/bolt v1.3.1
+github.com/boltdb/bolt
+# github.com/docker/libkv v0.2.1
+github.com/docker/libkv
+github.com/docker/libkv/store
+github.com/docker/libkv/store/boltdb
+# github.com/mitchellh/go-homedir v1.1.0
+github.com/mitchellh/go-homedir
+# golang.org/x/sys v0.0.0-20180501092740-78d5f264b493
+golang.org/x/sys/unix
