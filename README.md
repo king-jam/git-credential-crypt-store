@@ -1,7 +1,11 @@
 # git-credential-token
 Git credential helper to put access tokens behind a password when two-factor is enabled on GitHub.
 
-TODO: Update this on how to use since the git plugins setup isn't very obvious.
+Can be run on Linux using zenity for dialog boxes.
 
-[credential "https://king-jam@github.com"] <- username not respected....
-        helper = crypt-store -file ~/.git-credential-crypt-store
+Add the following to your git config file:
+
+``` git
+[credential]
+        helper = crypt-store
+```

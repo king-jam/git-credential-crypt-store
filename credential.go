@@ -27,8 +27,10 @@ func (c *Credential) ToURL() (*url.URL, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return url, nil
 	}
+
 	u := new(url.URL)
 	// ensure host is defined
 	if c.Host != "" {
@@ -50,6 +52,7 @@ func (c *Credential) ToURL() (*url.URL, error) {
 	if c.Username != "" && c.Password == "" {
 		u.User = url.User(c.Username)
 	}
+
 	return u, nil
 }
 
@@ -71,6 +74,7 @@ func CredentialsMatch(want *Credential, have *Credential) bool {
 			}
 		}
 	}
+
 	if want.Host != "" {
 		if have.Host != "" {
 			if want.Host != have.Host {
@@ -78,6 +82,7 @@ func CredentialsMatch(want *Credential, have *Credential) bool {
 			}
 		}
 	}
+
 	if want.Path != "" {
 		if have.Path != "" {
 			if want.Path != have.Path {
@@ -85,6 +90,7 @@ func CredentialsMatch(want *Credential, have *Credential) bool {
 			}
 		}
 	}
+
 	if want.Username != "" {
 		if have.Username != "" {
 			if want.Username != have.Username {
@@ -92,12 +98,14 @@ func CredentialsMatch(want *Credential, have *Credential) bool {
 			}
 		}
 	}
+
 	return true
 }
 
 func ParseCredentialStdin() (*Credential, error) {
 	c := new(Credential)
 	reader := bufio.NewReader(os.Stdin)
+
 	for {
 		// read a line from Stdin
 		line, isPrefix, err := reader.ReadLine()
@@ -105,25 +113,30 @@ func ParseCredentialStdin() (*Credential, error) {
 			if err == io.EOF {
 				return c, nil
 			}
+
 			return nil, err
 		}
 		// if we got a partial line, we pull the rest until we get the full line
 		for isPrefix {
 			var lineFragment []byte
+
 			lineFragment, isPrefix, err = reader.ReadLine()
 			if err != nil {
 				return nil, err
 			}
+
 			line = append(line, lineFragment...)
 		}
 		// if the line is empty, we are done getting data from the git credential service
 		if len(line) == 0 {
 			break
 		}
+
 		parts := strings.SplitN(string(line), "=", 2)
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("Invalid Input String")
+			return nil, fmt.Errorf("invalid Input String")
 		}
+
 		key := parts[0]
 		value := parts[1]
 		switch key {
@@ -149,6 +162,7 @@ func ParseCredentialStdin() (*Credential, error) {
 			// do nothing
 		}
 	}
+
 	return nil, nil
 }
 
@@ -157,6 +171,7 @@ func parseCredentialURL(rawurl string, c *Credential) error {
 	if err != nil {
 		return err
 	}
+
 	c.URL = url.String()
 	if url.Scheme != "" {
 		c.Protocol = url.Scheme
@@ -172,11 +187,13 @@ func parseCredentialURL(rawurl string, c *Credential) error {
 		if username != "" {
 			c.Username = url.User.Username()
 		}
+
 		password, passwordSet := url.User.Password()
 		if passwordSet {
 			c.Password = password
 		}
 	}
+
 	c.Host = url.Host
 	c.Path = url.Path
 	return nil
@@ -187,6 +204,7 @@ func parseQuit(value string, c *Credential) error {
 	if err != nil {
 		return err
 	}
+
 	c.Quit = quit
 	return nil
 }
