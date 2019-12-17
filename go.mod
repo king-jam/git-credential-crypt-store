@@ -7,3 +7,5 @@ require (
 	github.com/stretchr/testify v1.3.0 // indirect
 	golang.org/x/sys v0.0.0-20180501092740-78d5f264b493 // indirect
 )
+
+go 1.13
