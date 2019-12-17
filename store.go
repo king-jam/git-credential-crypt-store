@@ -30,7 +30,7 @@ func storeCredentials(db backend.CryptStoreInterface, credentials *Credential) e
 		}
 	}
 	// if we don't have an entry, create it
-	password, err := dialogs.PasswordCreationBox()
+	password, err := dialogs.PasswordCreationBox(credentials.Username)
 	if err != nil {
 		return err
 	}
@@ -47,6 +47,7 @@ func storeCredentials(db backend.CryptStoreInterface, credentials *Credential) e
 	if err != nil {
 		return err
 	}
+
 	s.CredentialURLs = append(s.CredentialURLs, credAsURL.String())
 	err = db.PersistStorageContainer(s)
 	if err != nil {

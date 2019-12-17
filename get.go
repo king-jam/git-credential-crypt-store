@@ -19,8 +19,9 @@ func lookupCredentials(db backend.CryptStoreInterface, credentials *Credential) 
 		if err != nil {
 			return err
 		}
+
 		if CredentialsMatch(credentials, c) {
-			password, err := dialogs.PasswordBox()
+			password, err := dialogs.PasswordBox(c.Username)
 			if err != nil {
 				return err
 			}

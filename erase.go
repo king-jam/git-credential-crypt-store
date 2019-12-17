@@ -14,6 +14,7 @@ func removeCredentials(db backend.CryptStoreInterface, credentials *Credential) 
 		if err != nil {
 			return err
 		}
+
 		if CredentialsMatch(credentials, c) {
 			// delete the current index
 			copy(s.CredentialURLs[idx:], s.CredentialURLs[idx+1:])
@@ -24,6 +25,7 @@ func removeCredentials(db backend.CryptStoreInterface, credentials *Credential) 
 			if err != nil {
 				return err
 			}
+
 			break
 		}
 	}

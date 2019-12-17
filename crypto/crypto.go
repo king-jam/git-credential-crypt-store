@@ -1,3 +1,4 @@
+// Package crypto is a serializable symmetric encryption package
 package crypto
 
 import (
@@ -25,14 +26,17 @@ type Cipher struct {
 // NewCipher creates an AES-256 block cipher to encrypt/decrypt data
 func NewCipher(password string) (*Cipher, error) {
 	hasher := sha256.New()
+
 	_, err := hasher.Write([]byte(password))
 	if err != nil {
 		return nil, ErrCryptoManager(err.Error())
 	}
+
 	aesgcm, err := buildCipher(hasher.Sum(nil))
 	if err != nil {
 		return nil, ErrCryptoManager(err.Error())
 	}
+
 	return &Cipher{gcm: aesgcm}, nil
 }
 
@@ -46,6 +50,7 @@ func buildCipher(keySlice []byte) (cipher.AEAD, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return aesgcm, nil
 }
 
@@ -56,29 +61,35 @@ func (c *Cipher) Encrypt(plaintext []byte) ([]byte, error) {
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return []byte{}, ErrCryptoManager(err.Error())
 	}
+
 	ciphertext := c.gcm.Seal(nil, nonce, plaintext, nil)
 	sl := storageLayout{
 		nonce: nonce,
 		value: ciphertext,
 	}
+
 	storageCiphertext, err := sl.Encode()
 	if err != nil {
 		return []byte{}, ErrCryptoManager(err.Error())
 	}
+
 	return storageCiphertext, nil
 }
 
 // Decrypt will take a []byte slice and storageLayout object and
 func (c *Cipher) Decrypt(storageCiphertext []byte) ([]byte, error) {
 	sl := new(storageLayout)
+
 	err := sl.Decode(storageCiphertext)
 	if err != nil {
 		return []byte{}, ErrCryptoManager(err.Error())
 	}
+
 	plaintext, err := c.gcm.Open(nil, sl.Nonce(), sl.Value(), nil)
 	if err != nil {
 		return []byte{}, ErrCryptoManager(err.Error())
 	}
+
 	return plaintext, nil
 }
 

@@ -45,9 +45,11 @@ func (sl storageLayout) Encode() ([]byte, error) {
 	if len(sl.nonce) == 0 {
 		return []byte{}, ErrStorageLayoutEncodingInput
 	}
+
 	if len(sl.value) == 0 {
 		return []byte{}, ErrStorageLayoutEncodingInput
 	}
+
 	delimiter := []byte(storageDelimiter)
 	buffer := new(bytes.Buffer)
 	// base64 encode it so we don't overlap our delimiters
@@ -57,7 +59,11 @@ func (sl storageLayout) Encode() ([]byte, error) {
 	if err != nil {
 		return []byte{}, ErrStorageLayoutEncodingInput
 	}
-	nonceEncoder.Close() // close it so everything flushes
+
+	err = nonceEncoder.Close() // close it so everything flushes
+	if err != nil {
+		return []byte{}, ErrStorageLayoutEncodingInput
+	}
 	// append on the third delimiter - <nonce><delimiter>
 	_, err = buffer.Write(delimiter)
 	if err != nil {
@@ -70,7 +76,12 @@ func (sl storageLayout) Encode() ([]byte, error) {
 	if err != nil {
 		return []byte{}, ErrStorageLayoutEncodingInput
 	}
-	valueEncoder.Close() // close it so everything flushes
+
+	err = valueEncoder.Close() // close it so everything flushes
+	if err != nil {
+		return []byte{}, ErrStorageLayoutEncodingInput
+	}
+
 	return buffer.Bytes(), nil
 }
 
@@ -95,14 +106,18 @@ func (sl *storageLayout) Decode(b []byte) error {
 	if err != nil {
 		return ErrStorageLayoutDecoding(err.Error())
 	}
+
 	sl.nonce = nonceBuf
 	// make a temp slice to read things into
 	valueBuf := make([]byte, base64EncodingType.DecodedLen(len(parts[valueIndex])))
+
 	_, err = base64EncodingType.Decode(valueBuf, parts[valueIndex])
 	if err != nil {
 		return ErrStorageLayoutDecoding(err.Error())
 	}
+
 	sl.value = valueBuf
+
 	return nil
 }
 

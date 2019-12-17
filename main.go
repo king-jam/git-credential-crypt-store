@@ -13,13 +13,10 @@ const storeFileName = ".git-credential-crypt-store"
 
 const storeLocationDefault = "~/" + storeFileName
 
-var storeLocation string
-
-func init() {
-	flag.StringVar(&storeLocation, "file", storeLocationDefault, "Location to store the credentials.")
-}
-
 func main() {
+	var storeLocation string
+
+	flag.StringVar(&storeLocation, "file", storeLocationDefault, "Location to store the credentials.")
 	// define a quick helper function for usage so we can let people know
 	flag.Usage = func() {
 		fmt.Fprint(os.Stderr, "Usage:\n")
@@ -59,17 +56,22 @@ func main() {
 	switch op := os.Args[len(os.Args)-1]; op {
 	case "get":
 		if err := lookupCredentials(cs, creds); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	case "store":
 		if err := storeCredentials(cs, creds); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	case "erase":
 		if err := removeCredentials(cs, creds); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	default:
 		// ignore unknown operation
 	}
+
+	os.Exit(0)
 }
